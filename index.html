@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple Resume Maker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #222;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 2rem;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .form-section, .preview-section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex: 1 1 450px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      flex: 1 1 150px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .download-btn {
+      background-color: #28a745;
+    }
+
+    .preview-section h2 {
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 6px;
+      color: #007bff;
+      margin-bottom: 12px;
+    }
+
+    .preview-section .section {
+      margin-bottom: 16px;
+    }
+
+    .preview-section p {
+      margin: 4px 0;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      input, textarea, button {
+        font-size: 0.95rem;
+      }
+
+      .form-section, .preview-section {
+        flex: 1 1 100%;
+        padding: 15px;
+      }
+
+      button {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Simple Resume Maker</h1>
+
+<div class="container">
+  <div class="form-section">
+    <label for="name">Full Name</label>
+    <input type="text" id="name" placeholder="Your full name" />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="you@example.com" />
+
+    <label for="phone">Phone</label>
+    <input type="tel" id="phone" placeholder="+1 234 567 8901" />
+
+    <label for="address">Address</label>
+    <textarea id="address" rows="2" placeholder="Your address"></textarea>
+
+    <label for="education">Education</label>
+    <textarea id="education" rows="4" placeholder="Degree, School, Year"></textarea>
+
+    <label for="experience">Work Experience</label>
+    <textarea id="experience" rows="6" placeholder="Job title, company, responsibilities, dates"></textarea>
+
+    <label for="skills">Skills</label>
+    <textarea id="skills" rows="4" placeholder="Your skills separated by commas"></textarea>
+
+    <div class="button-group">
+      <button onclick="generateResume()">Generate Resume</button>
+      <button class="download-btn" onclick="downloadResume()">Download PDF</button>
+    </div>
+  </div>
+
+  <div class="preview-section" id="preview">
+    <h2>Resume Preview</h2>
+    <div class="section" id="preview-name"></div>
+    <div class="section" id="preview-contact"></div>
+    <div class="section" id="preview-education"></div>
+    <div class="section" id="preview-experience"></div>
+    <div class="section" id="preview-skills"></div>
+  </div>
+</div>
+
+<!-- jsPDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  function generateResume() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('address').value.trim();
+    const education = document.getElementById('education').value.trim();
+    const experience = document.getElementById('experience').value.trim();
+    const skills = document.getElementById('skills').value.trim();
+
+    document.getElementById('preview-name').innerHTML = `<h2>${name || "Your Name"}</h2>`;
+    document.getElementById('preview-contact').innerHTML = `
+      <p><strong>Email:</strong> ${email || "your.email@example.com"}</p>
+      <p><strong>Phone:</strong> ${phone || "Your phone number"}</p>
+      <p><strong>Address:</strong> ${address || "Your address"}</p>
+    `;
+    document.getElementById('preview-education').innerHTML = `<h3>Education</h3><p>${education || "Your education details"}</p>`;
+    document.getElementById('preview-experience').innerHTML = `<h3>Work Experience</h3><p>${experience || "Your work experience"}</p>`;
+    document.getElementById('preview-skills').innerHTML = `<h3>Skills</h3><p>${skills || "Your skills"}</p>`;
+  }
+
+  async function downloadResume() {
+    generateResume(); // make sure content is up-to-date
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const preview = document.getElementById('preview');
+
+    let y = 10;
+    doc.setFontSize(22);
+    doc.setTextColor("#007bff");
+    doc.text(preview.querySelector('h2').innerText, 10, y);
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.setTextColor("#000");
+    const contactLines = preview.querySelector('#preview-contact').innerText.split('\n');
+    contactLines.forEach(line => {
+      y += 7;
+      doc.text(line.trim(), 10, y);
+    });
+
+    const sections = ['preview-education', 'preview-experience', 'preview-skills'];
+    sections.forEach(id => {
+      y += 12;
+      const header = preview.querySelector(`#${id} h3`).innerText;
+      const content = preview.querySelector(`#${id} p`).innerText;
+      doc.setTextColor("#007bff");
+      doc.setFontSize(16);
+      doc.text(header, 10, y);
+      y += 8;
+      doc.setTextColor("#000");
+      doc.setFontSize(12);
+
+      const splitText = doc.splitTextToSize(content, 180);
+      splitText.forEach(line => {
+        y += 7;
+        doc.text(line, 10, y);
+      });
+    });
+
+    doc.save('resume.pdf');
+  }
+</script>
+
+</body>
+</html>
